@@ -36,10 +36,27 @@
 #  1 <= answers.length <= 1000 
 #  0 <= answers[i] < 1000 
 #  
-#  Related Topics 
+#  Related Topics
+from collections import Counter
+from typing import List
 
 
 # leetcode submit region begin(Prohibit modification and deletion)
 class Solution:
     def numRabbits(self, answers: List[int]) -> int:
+        d = Counter(answers)
+        ans = 0
+        for k, v in d.items():
+            ans += v // (k + 1) * (k + 1)
+            if v % (k + 1):
+                ans += 1 + k
+        return ans
+
+
 # leetcode submit region end(Prohibit modification and deletion)
+
+
+if __name__ == '__main__':
+    answers = [[1, 1, 1, 2], [10, 10, 10], [4]]
+    for answer in answers:
+        print(Solution().numRabbits(answer))
