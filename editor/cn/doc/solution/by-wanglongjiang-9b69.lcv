@@ -1,0 +1,30 @@
+### 解题思路
+
+思路：暴力排列组合
+1、生成cookies的所有排列；
+2、生成n-1个位置中挑选k-1个挡板的组合；
+3、计算此次挡板分隔的各子数组的求和的最大值
+
+将将能通过
+
+### 代码
+
+* python3
+
+```python3
+class Solution:
+    def distributeCookies(self, cookies: List[int], k: int) -> int:
+        ans = sum(cookies)
+        for p in permutations(cookies):  # 生成所有cookies的排列
+            for b in combinations(range(1, len(cookies)), k - 1):  # 生成挡板的组合
+                s = max(sum(p[:b[0]]), sum(p[b[-1]:]))  # 计算第0个挡板前和最后一个挡板后的2个子数组和，然后s保持最大的子数组和
+                if s >= ans:  # 最大子数组和超过以往计算结果，可以提前退出
+                    continue
+                for i in range(k - 2):
+                    s = max(s, sum(p[b[i]:b[i + 1]]))  # 计算2个挡板间的子数组之和；然后s始终保持最大的子数组和
+                    if s >= ans:  # 最大子数组和超过以往计算结果，可以提前退出
+                        break
+                ans = min(ans, s)
+        return ans
+```
+

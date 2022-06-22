@@ -1,0 +1,129 @@
+![u=2486666502,2753371644&fm=224&gp=0.jpeg](https://pic.leetcode-cn.com/1620436367-eqeEtl-u=2486666502,2753371644&fm=224&gp=0.jpeg)
+
+### 解题思路
+
+这道题目刚开始看有点懵，知道是DP，但是又看不出状态如何转移。
+看上去又像背包，但是写了一下发现不对。
+
+别急，我们如果做过**二分法**，**回溯**，这两个组合一下，就能解这道题。
+
+如果大家做过 [1011. 在 D 天内送达包裹的能力](/problems/capacity-to-ship-packages-within-d-days/) 这道题，那思路就比较清晰了，1011 比这个简单一点，主要是1011 只能顺序拿，不需要组合，这道题目需要考虑各种组合。
+
+即使没做过，也没关系，我们按照下面两步，也能做出来，顺便还能把1011 给解了。
+
+#### 1. 如何找到这个最小的最大值？
+
+我们想象一下 K 个人，可以设置一个每个人最大运输量大小为`limit`，如果在这个`limit`下，工作能分完，这个方案是可行的，如果在这个`limit` 下分不完，那这个方案不可行。
+
+而且我们可以得到每个人的limit，
+1. 最小为 jobs 里面的最大值，因为如果小于最大值，这些工作就分不完了。
+2. 最大为 jobs 之和，也就是全部分给一个工人，也是可行的，但是其他人就没活干了，满足不了题目要求。
+
+我们可以一个个试这`[minlimit, maxlimit]`, **找到第一个满足要求的limit**，这就是答案，但是显然效率太低了。
+如果**用二分法**，我们就能快速找到这个满足要求的最小值。
+那这儿就有一个模板
+
+* python3
+
+```python3
+left, right = 最小值, 最大值
+while  left < right:
+    limit = (left + right)//2
+    if 工作可以分完(limit):
+        right = limit
+    else:
+        left = limit + 1
+return left
+```
+
+思路和  [1011. 在 D 天内送达包裹的能力](/problems/capacity-to-ship-packages-within-d-days/) 类似
+
+#### 2. 如何判断在这个limit下工作能不能分完
+
+这一步就是怎么实现 `工作可以分完(limit) `这个函数了。
+
+这个没有很好的办法，我们只能一种种方案试，但是整个回溯的复杂度也是蛮高的。要 `K!`, 不过好在我们有一些剪枝可以做。
+
+这边的方案和 [698. 划分为k个相等的子集](/problems/partition-to-k-equal-sum-subsets/) 类似，我们定义一个K大小的数组，然后做回溯，每个元素的值不超过limit，我们就往下试。
+
+我们通过两步的抽象，就把这个题目分解了。
+
+---
+
+通过这道题目，我们把
+1. [1011. 在 D 天内送达包裹的能力](/problems/capacity-to-ship-packages-within-d-days/)
+2. [698. 划分为k个相等的子集](/problems/partition-to-k-equal-sum-subsets/)
+
+也带走吧。
+
+----
+
+> 注：感谢 [@xiao-duan-tui-7t](/u/xiao-duan-tui-7t/) 同学，这边再强调一下剪枝的重要性，**不剪枝直接超时**。
+> 回溯要尽量剪枝，不然这个阶乘复杂度肯定爆。
+> 代码里面一共有两处剪枝：
+> 1. jobs 排序，把大的先试，这样方案不行的话，失败得更早，`fail fast`，实测加上这个剪枝会快3倍。
+> 2. 如果这个工人分活失败（给他分配这个任务后所有的尝试都是失败的），则剪枝，因为也没必要再往后试了，其他人也会出现一样的情况。（感谢 [@sudoz](/u/sudoz/) 的解释，解释得比我清楚）
+>
+> 还有一个剪枝，实测在这题的测试用例中没啥效果，就没写上去，减少代码的复杂度。
+> 如果发现job中有和limit 一样的，直接可以去掉，K 也相应的-1。
+>
+>> 具体做法：这个可以在 job 排序后 从大头开始检测，和limit 一样就直接弹出来，K也相应减1。
+
+> 这个剪枝在698 中很重要，加了这个剪枝会快二三十倍。
+
+### 代码
+
+* python3
+
+```python3
+class Solution:
+    def minimumTimeRequired(self, jobs: List[int], k: int) -> int:
+
+        def check(limit):
+            # 剪枝：排序后，大的先拿出来试，如果方案不行，失败得更快
+            arr = sorted(jobs)
+
+            groups = [0] * k
+            # 分成K 组，看看在这个limit 下 能不能安排完工作
+            if backtrace(arr, groups, limit):
+                return True
+            else:
+                return False
+
+
+        def backtrace(arr, groups, limit):
+            # 尝试每种可能性
+            #print(arr, groups, limit)
+            if not arr: return True #分完，则方案可行
+            v = arr.pop()
+
+            for i in range(len(groups)):
+                if groups[i] + v <= limit:
+                    groups[i] += v
+                    if backtrace(arr, groups, limit):
+                        return True
+                    groups[i] -= v
+
+                    # 如果这个工人分活失败（给他分配这个任务后所有的尝试都是失败的），则剪枝，因为也没必要再往后试了，其他人也会出现一样的情况 
+                    if groups[i] ==0:
+                        break
+
+            arr.append(v)
+
+            return False
+        
+        #每个人承担的工作的上限，最小为，job 里面的最大值，最大为 jobs 之和
+        l, r  = max(jobs), sum(jobs)
+
+        while l < r:
+            mid = (l + r)//2
+
+            if check(mid):
+                r = mid
+            else:
+                l = mid + 1
+
+        return l
+
+```
+
