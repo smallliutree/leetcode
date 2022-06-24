@@ -45,6 +45,7 @@
 #  
 #  Related Topics
 from collections import defaultdict
+from functools import reduce
 from typing import List
 
 # leetcode submit region begin(Prohibit modification and deletion)
@@ -52,28 +53,32 @@ class Solution:
     def minimumLengthEncoding(self, words: List[str]) -> int:
         Trie = lambda: defaultdict(Trie)
         t = Trie()
-        for word in set(words):
-            node = t[word[-1]]
-            for c in word[-2::-1]:
-                node = node[c]
-        # print(t)
+        # for word in set(words):
+        #     node = t[word[-1]]
+        #     for c in word[-2::-1]:
+        #         node = node[c]
+        # # print(t)
+        #
+        # ans = 0
+        #
+        # def dfs(d, tmp):
+        #     nonlocal ans
+        #     if not d.values():
+        #         ans += tmp + 1
+        #         return
+        #     for _d in d.values():
+        #         dfs(_d, tmp + 1)
+        #
+        # dfs(t, 0)
+        # return ans
+        words = list(set(words))
+        nodes = [reduce(dict.__getitem__, word[::-1], t) for word in words]
 
-        ans = 0
-
-        def dfs(d, tmp):
-            nonlocal ans
-            if not d.values():
-                ans += tmp + 1
-                return
-            for _d in d.values():
-                dfs(_d, tmp + 1)
-
-        dfs(t, 0)
-        return ans
+        return sum(len(word) + 1 for i, word in enumerate(words) if len(nodes[i]) == 0)
 
 
 # leetcode submit region end(Prohibit modification and deletion)
 
 
 if __name__ == '__main__':
-    print(Solution().minimumLengthEncoding(["t"]))
+    print(Solution().minimumLengthEncoding(["time", "me", "bell"]))
