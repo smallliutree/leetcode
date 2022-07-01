@@ -38,23 +38,49 @@ from functools import reduce
 # leetcode submit region begin(Prohibit modification and deletion)
 class Solution:
     def findNumberOfLIS(self, nums: List[int]) -> int:
-        n, max_len, ans = len(nums), 0, 0
-        dp = [1] * n
-        cnt = [1] * n
-        for i in range(n):
-            for j in range(i):
-                if nums[i] > nums[j]:
-                    if dp[j] + 1 > dp[i]:
-                        dp[i] = dp[j] + 1
-                        cnt[i] = cnt[j]
-                    elif dp[j] + 1 == dp[i]:
-                        cnt[i] += cnt[j]
-            if dp[i] > max_len:
-                max_len = dp[i]
-                ans = cnt[i]
-            elif dp[i] == max_len:
-                ans += cnt[i]
-        return ans
+        # n, max_len, ans = len(nums), 0, 0
+        # dp = [1] * n
+        # cnt = [1] * n
+        # for i in range(n):
+        #     for j in range(i):
+        #         if nums[i] > nums[j]:
+        #             if dp[j] + 1 > dp[i]:
+        #                 dp[i] = dp[j] + 1
+        #                 cnt[i] = cnt[j]
+        #             elif dp[j] + 1 == dp[i]:
+        #                 cnt[i] += cnt[j]
+        #     if dp[i] > max_len:
+        #         max_len = dp[i]
+        #         ans = cnt[i]
+        #     elif dp[i] == max_len:
+        #         ans += cnt[i]
+        # return ans
+        d, cnt = [], []
+        for v in nums:
+            index = self.bisect(len(d), lambda x: d[x][-1] >= v)
+            c = 1
+            if index > 0:
+                k = self.bisect(len(d[index - 1]), lambda x: d[index - 1][x] < v)
+                c = cnt[index - 1][-1] - cnt[index - 1][k]
+            if index == len(d):
+                d.append([v])
+                cnt.append([0, c])
+            else:
+                d[index].append(v)
+                cnt[index].append(cnt[index][-1] + c)
+        print(d, cnt)
+        return cnt[-1][-1]
+
+    @staticmethod
+    def bisect(n, func):
+        left, right = 0, n
+        while left < right:
+            mid = (left + right) // 2
+            if func(mid):
+                right = mid
+            else:
+                left = mid + 1
+        return left
 # leetcode submit region end(Prohibit modification and deletion)
 
 
