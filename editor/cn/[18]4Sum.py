@@ -33,9 +33,10 @@
 #  -10⁹ <= target <= 10⁹ 
 #  
 #  Related Topics 
-
+from typing import List
 
 # leetcode submit region begin(Prohibit modification and deletion)
 class Solution:
     def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        pass
 # leetcode submit region end(Prohibit modification and deletion)
